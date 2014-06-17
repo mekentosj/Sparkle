@@ -23,35 +23,33 @@
 {
 	if (!encodedSignature || !path) return NO;
 
-	SUDSAVerifier *verifier = [[self alloc] initWithPublicKeyString:pkeyString];
+	SUDSAVerifier *verifier = [[[self alloc] initWithPublicKeyString:pkeyString] autorelease];
 
 	if (!verifier) return NO;
 
 	NSString *strippedSignature = [encodedSignature stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-	NSData *signature = [[NSData alloc] initWithBase64Encoding:strippedSignature];
+	NSData *signature = [[[NSData alloc] initWithBase64Encoding:strippedSignature] autorelease];
 	return [verifier verifyFileAtPath:path signature:signature];
 }
 
 - (instancetype)initWithPublicKeyString:(NSString *)string
 {
-	NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
-	return (self = [self initWithPublicKeyData:data]);
+	return [self initWithPublicKeyData:[string dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
 - (instancetype)initWithPublicKeyData:(NSData *)data
 {
-	if (!data.length) return (self = nil);
-
 	self = [super init];
 	if (!self) return nil;
-
+    if (!data.length) { [self release]; return nil; }
+    
 	SecExternalFormat format = kSecFormatOpenSSL;
 	SecExternalItemType itemType = kSecItemTypePublicKey;
 	SecItemImportExportKeyParameters params = {};
 	CFArrayRef items = NULL;
 
 	OSStatus status = SecItemImport((__bridge CFDataRef)data, NULL, &format, &itemType, 0, &params, NULL, &items);
-	if (status || !items) { return (self = nil); }
+    if (status || !items) { [self release]; return nil; }
 
 	if (format == kSecFormatOpenSSL && itemType == kSecItemTypePublicKey && CFArrayGetCount(items) == 1) {
 		_secKey = (SecKeyRef)CFRetain(CFArrayGetValueAtIndex(items, 0));
@@ -65,6 +63,7 @@
 - (void)dealloc
 {
 	if (_secKey) { CFRelease(_secKey); }
+    [super dealloc];
 }
 
 - (BOOL)verifyURL:(NSURL *)URL signature:(NSData *)signature
