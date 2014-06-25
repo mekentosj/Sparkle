@@ -42,14 +42,20 @@
 	self = [super init];
 	if (!self) return nil;
     if (!data.length) { [self release]; return nil; }
-    
+
 	SecExternalFormat format = kSecFormatOpenSSL;
 	SecExternalItemType itemType = kSecItemTypePublicKey;
 	SecItemImportExportKeyParameters params = {};
 	CFArrayRef items = NULL;
 
 	OSStatus status = SecItemImport((__bridge CFDataRef)data, NULL, &format, &itemType, 0, &params, NULL, &items);
-    if (status || !items) { [self release]; return nil; }
+	if (status || !items) {
+		if (items) {
+			CFRelease(items);
+		}
+		[self release];
+		return nil;
+	}
 
 	if (format == kSecFormatOpenSSL && itemType == kSecItemTypePublicKey && CFArrayGetCount(items) == 1) {
 		_secKey = (SecKeyRef)CFRetain(CFArrayGetValueAtIndex(items, 0));
