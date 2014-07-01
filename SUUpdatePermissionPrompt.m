@@ -17,12 +17,14 @@
 
 @implementation SUUpdatePermissionPrompt
 
+@synthesize isShowingMoreInfo = _isShowingMoreInfo, shouldSendProfile = _shouldSendProfile;
+
 - (BOOL)shouldAskAboutProfile
 {
 	return [[host objectForInfoDictionaryKey:SUEnableSystemProfilingKey] boolValue];
 }
 
-- (instancetype)initWithHost:(SUHost *)aHost systemProfile:(NSArray *)profile delegate:(id<SUUpdatePermissionPromptDelegateProtocol>)d
+- (instancetype)initWithHost:(SUHost *)aHost systemProfile:(NSArray *)profile delegate:(id<SUUpdatePermissionPromptDelegate>)d
 {
 	self = [super initWithHost:aHost windowNibName:@"SUUpdatePermissionPrompt"];
 	if (self)
@@ -37,14 +39,14 @@
 	return self;
 }
 
-+ (void)promptWithHost:(SUHost *)aHost systemProfile:(NSArray *)profile delegate:(id)d
++ (void)promptWithHost:(SUHost *)aHost systemProfile:(NSArray *)profile delegate:(id <SUUpdatePermissionPromptDelegate>)d
 {
 	// If this is a background application we need to focus it in order to bring the prompt
 	// to the user's attention. Otherwise the prompt would be hidden behind other applications and
 	// the user would not know why the application was paused.
-	if ([aHost isBackgroundApplication]) { [NSApp activateIgnoringOtherApps:YES]; }
-	
-	id prompt = [[[[self class] alloc] initWithHost:aHost systemProfile:profile delegate:d] autorelease];
+	if ([aHost isBackgroundApplication]) { [[NSApplication sharedApplication] activateIgnoringOtherApps:YES]; }
+
+	SUUpdatePermissionPrompt *prompt = [[[[self class] alloc] initWithHost:aHost systemProfile:profile delegate:d] autorelease];
 	[NSApp runModalForWindow:[prompt window]];
 }
 
@@ -63,7 +65,7 @@
     }
 }
 
-- (BOOL)tableView:(NSTableView *)tableView shouldSelectRow:(NSInteger)row { return NO; }
+- (BOOL)tableView:(NSTableView *) __unused tableView shouldSelectRow:(NSInteger) __unused row { return NO; }
 
 - (void)dealloc
 {
@@ -82,18 +84,18 @@
 	return [NSString stringWithFormat:SULocalizedString(@"Should %1$@ automatically check for updates? You can always check for updates manually from the %1$@ menu.", nil), [host name]];
 }
 
-- (IBAction)toggleMoreInfo:(id)sender
+- (IBAction)toggleMoreInfo:(id) __unused sender
 {
 	self.isShowingMoreInfo = !_isShowingMoreInfo;
-	
+
 	NSView *contentView = [[self window] contentView];
 	NSRect contentViewFrame = [contentView frame];
 	NSRect windowFrame = [[self window] frame];
-	
+
 	NSRect profileMoreInfoViewFrame = [moreInfoView frame];
 	NSRect profileMoreInfoButtonFrame = [moreInfoButton frame];
 	NSRect descriptionFrame = [descriptionTextField frame];
-	
+
 	if (_isShowingMoreInfo)
 	{
 		// Add the subview
@@ -101,10 +103,10 @@
 		profileMoreInfoViewFrame.origin.y = profileMoreInfoButtonFrame.origin.y - profileMoreInfoViewFrame.size.height;
 		profileMoreInfoViewFrame.origin.x = descriptionFrame.origin.x;
 		profileMoreInfoViewFrame.size.width = descriptionFrame.size.width;
-		
+
 		windowFrame.size.height += profileMoreInfoViewFrame.size.height;
 		windowFrame.origin.y -= profileMoreInfoViewFrame.size.height;
-		
+
 		[moreInfoView setFrame:profileMoreInfoViewFrame];
 		[moreInfoView setHidden:YES];
 		[contentView addSubview:moreInfoView
@@ -115,7 +117,7 @@
 		[moreInfoView setHidden:NO];
 		[moreInfoView removeFromSuperview];
 		contentViewFrame.size.height -= profileMoreInfoViewFrame.size.height;
-		
+
 		windowFrame.size.height -= profileMoreInfoViewFrame.size.height;
 		windowFrame.origin.y += profileMoreInfoViewFrame.size.height;
 	}

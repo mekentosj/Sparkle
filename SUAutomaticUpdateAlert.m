@@ -12,7 +12,7 @@
 
 @interface SUAutomaticUpdateAlert ()
 @property (retain) SUAppcastItem *updateItem;
-@property (assign) id<SUAutomaticUpdateAlertDelegateProtocol> delegate;
+@property (assign) id<SUAutomaticUpdateAlertDelegate> delegate;
 @property (retain) SUHost *host;
 @end
 
@@ -21,7 +21,7 @@
 @synthesize host;
 @synthesize updateItem;
 
-- (instancetype)initWithAppcastItem:(SUAppcastItem *)item host:(SUHost *)aHost delegate:(id<SUAutomaticUpdateAlertDelegateProtocol>)del
+- (instancetype)initWithAppcastItem:(SUAppcastItem *)item host:(SUHost *)aHost delegate:(id<SUAutomaticUpdateAlertDelegate>)del
 {
 	self = [super initWithHost:aHost windowNibName:@"SUAutomaticUpdateAlert"];
 	if (self)
@@ -29,7 +29,7 @@
 		self.updateItem = item;
 		self.delegate = del;
 		self.host = aHost;
-		[self setShouldCascadeWindows:NO];	
+		[self setShouldCascadeWindows:NO];
 		[[self window] center];
 	}
 	return self;
@@ -44,19 +44,19 @@
 
 - (NSString *)description { return [NSString stringWithFormat:@"%@ <%@, %@>", [self class], [host bundlePath], [host installationPath]]; }
 
-- (IBAction)installNow:(id)sender
+- (IBAction)installNow:(id) __unused sender
 {
 	[self close];
 	[delegate automaticUpdateAlert:self finishedWithChoice:SUInstallNowChoice];
 }
 
-- (IBAction)installLater:(id)sender
+- (IBAction)installLater:(id) __unused sender
 {
 	[self close];
 	[delegate automaticUpdateAlert:self finishedWithChoice:SUInstallLaterChoice];
 }
 
-- (IBAction)doNotInstall:(id)sender
+- (IBAction)doNotInstall:(id) __unused sender
 {
 	[self close];
 	[delegate automaticUpdateAlert:self finishedWithChoice:SUDoNotInstallChoice];

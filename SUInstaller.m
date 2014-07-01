@@ -27,19 +27,19 @@ static NSString*	sUpdateFolder = nil;
 {
 	FSRef fileRef;
 	OSStatus err = noErr;
-	Boolean aliasFileFlag, folderFlag;
+	Boolean aliasFileFlag = false, folderFlag = false;
 	NSURL *fileURL = [NSURL fileURLWithPath:path];
-	
+
 	if (FALSE == CFURLGetFSRef((CFURLRef)fileURL, &fileRef))
 		err = coreFoundationUnknownErr;
-	
+
 	if (noErr == err)
 		err = FSIsAliasFile(&fileRef, &aliasFileFlag, &folderFlag);
-	
+
 	if (noErr == err)
-		return (BOOL)(aliasFileFlag && folderFlag);
+		return !!(aliasFileFlag && folderFlag);
 	else
-		return NO;	
+		return NO;
 }
 
 + (NSString *)installSourcePathInUpdateFolder:(NSString *)inUpdateFolder forHost:(SUHost *)host isPackage:(BOOL *)isPackagePtr
@@ -52,13 +52,13 @@ static NSString*	sUpdateFolder = nil;
 	BOOL isPackage = NO;
 	NSString *fallbackPackagePath = nil;
 	NSDirectoryEnumerator *dirEnum = [[NSFileManager defaultManager] enumeratorAtPath: inUpdateFolder];
-	
+
 	[sUpdateFolder release];
 	sUpdateFolder = [inUpdateFolder retain];
-	
+
 	while ((currentFile = [dirEnum nextObject]))
 	{
-		NSString *currentPath = [inUpdateFolder stringByAppendingPathComponent:currentFile];		
+		NSString *currentPath = [inUpdateFolder stringByAppendingPathComponent:currentFile];
 		if ([[currentFile lastPathComponent] isEqualToString:bundleFileName] ||
 			[[currentFile lastPathComponent] isEqualToString:alternateBundleFileName]) // We found one!
 		{
@@ -92,14 +92,14 @@ static NSString*	sUpdateFolder = nil;
 				break;
 			}
 		}
-		
+
 		// Some DMGs have symlinks into /Applications! That's no good!
 		if ([self isAliasFolderAtPath:currentPath])
 			[dirEnum skipDescendents];
 	}
-	
+
 	// We don't have a valid path. Try to use the fallback package.
-    
+
 	if (newAppDownloadPath == nil && fallbackPackagePath != nil)
 	{
 		isPackage = YES;
@@ -117,11 +117,11 @@ static NSString*	sUpdateFolder = nil;
     return isPackage ? nil : path;
 }
 
-+ (void)installFromUpdateFolder:(NSString *)inUpdateFolder overHost:(SUHost *)host installationPath:(NSString *)installationPath delegate:delegate synchronously:(BOOL)synchronously versionComparator:(id <SUVersionComparison>)comparator
++ (void)installFromUpdateFolder:(NSString *)inUpdateFolder overHost:(SUHost *)host installationPath:(NSString *)installationPath delegate:(id<SUInstallerDelegate>)delegate synchronously:(BOOL)synchronously versionComparator:(id <SUVersionComparison>)comparator
 {
     BOOL isPackage = NO;
 	NSString *newAppDownloadPath = [self installSourcePathInUpdateFolder:inUpdateFolder forHost:host isPackage:&isPackage];
-    
+
 	if (newAppDownloadPath == nil)
 	{
 		[self finishInstallationToPath:installationPath withResult:NO host:host error:[NSError errorWithDomain:SUSparkleErrorDomain code:SUMissingUpdateError userInfo:@{NSLocalizedDescriptionKey: @"Couldn't find an appropriate update in the downloaded package."}] delegate:delegate];
@@ -135,9 +135,9 @@ static NSString*	sUpdateFolder = nil;
 + (void)mdimportInstallationPath:(NSString *)installationPath
 {
 	// *** GETS CALLED ON NON-MAIN THREAD!
-	
+
 	SULog( @"mdimporting" );
-	
+
 	NSTask *mdimport = [[[NSTask alloc] init] autorelease];
 	[mdimport setLaunchPath:@"/usr/bin/mdimport"];
 	[mdimport setArguments:@[installationPath]];
@@ -158,7 +158,7 @@ static NSString*	sUpdateFolder = nil;
 #define		SUNotifyDictErrorKey	@"SUNotifyDictError"
 #define		SUNotifyDictDelegateKey	@"SUNotifyDictDelegate"
 
-+ (void)finishInstallationToPath:(NSString *)installationPath withResult:(BOOL)result host:(SUHost *)host error:(NSError *)error delegate:delegate
++ (void)finishInstallationToPath:(NSString *)installationPath withResult:(BOOL)result host:(SUHost *)host error:(NSError *)error delegate:(id<SUInstallerDelegate>)delegate
 {
 	if (result)
 	{
