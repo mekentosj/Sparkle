@@ -11,7 +11,7 @@
 #import "SUAppcastItem.h"
 #import "SUVersionComparisonProtocol.h"
 
-@interface SUHost : NSObject
+SU_EXPORT @interface SUHost : NSObject
 
 @property (strong, readonly) NSBundle *bundle;
 

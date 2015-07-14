@@ -13,7 +13,7 @@
 #import "SUVersionComparisonProtocol.h"
 
 @class SUHost;
-@interface SUInstaller : NSObject
+SU_EXPORT @interface SUInstaller : NSObject
 
 + (NSString *)installSourcePathInUpdateFolder:(NSString *)inUpdateFolder forHost:(SUHost *)host isPackage:(BOOL *)isPackagePtr isGuided:(BOOL *)isGuidedPtr;
 + (void)installFromUpdateFolder:(NSString *)updateFolder overHost:(SUHost *)host installationPath:(NSString *)installationPath versionComparator:(id<SUVersionComparison>)comparator completionHandler:(void (^)(NSError *))completionHandler;

@@ -14,7 +14,7 @@
 @class SUHost;
 @protocol SUUnarchiverDelegate;
 
-@interface SUUnarchiver : NSObject
+SU_EXPORT @interface SUUnarchiver : NSObject
 
 @property (copy, readonly) NSString *archivePath;
 @property (copy, readonly) NSString *updateHostBundlePath;

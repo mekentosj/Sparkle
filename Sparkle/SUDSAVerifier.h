@@ -23,7 +23,7 @@
 @end
 #endif
 
-@interface SUDSAVerifier : NSObject
+SU_EXPORT @interface SUDSAVerifier : NSObject
 
 + (BOOL)validatePath:(NSString *)path withEncodedDSASignature:(NSString *)encodedSignature withPublicDSAKey:(NSString *)pkeyString;
 
